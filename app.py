@@ -5,8 +5,9 @@ import pandas as pd
 import os
 
 class Timer:
-    def __init__(self, parent, project_name, project_id):
+    def __init__(self, parent, project_name, project_id, app):
         self.parent = parent
+        self.app = app
         self.project_name = project_name
         self.project_id = project_id
         self.font = 'Arial 20'
@@ -42,10 +43,12 @@ class Timer:
                 self.pause_updates()
                 self.start_pause_button.config(text="Resume")
             else:
+                self.app.pause_all_timers_except(self)
                 self.resume_updates()
                 self.start_pause_button.config(text="Pause")
 
     def start(self):
+        self.app.pause_all_timers_except(self)
         self.elapsed_time = 0 
         self._display_time()
         self.after_id = self.frame.after(1000, self._update)
@@ -134,12 +137,18 @@ class TimerApp:
         self.project_popup.destroy()
 
     def create_timer_tile(self, project_name, project_id):
-        timer = Timer(self.master, project_name, project_id)
+        timer = Timer(self.master, project_name, project_id, self)
         timer.start()
         self.timers.append(timer)
 
     def return_timers_are_running(self):
         return any([timer.running for timer in self.timers])
+    
+    def pause_all_timers_except(self, active_timer):
+        for timer in self.timers:
+            if timer != active_timer:
+                timer.pause_updates()
+                timer.start_pause_button.config(text="Resume")
 
     def export_summary(self):
         data = []
