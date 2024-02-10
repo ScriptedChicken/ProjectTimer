@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk, StringVar
 import json
 import pandas as pd
 import os
@@ -115,6 +115,15 @@ class TimerApp:
         self.project_popup.title("Add New Project")
         self.project_popup.geometry("400x160")  # Set the size of the popup window
 
+        self.existing_name_id_pairs = self.return_existing_name_id_pairs()
+
+        existing_projects_label = tk.Label(self.project_popup, text="Select from existing projects:")
+        existing_projects_label.pack()
+        textvariable = StringVar()
+        self.existing_projects_combo = ttk.Combobox(self.project_popup, values=list(self.existing_name_id_pairs.keys()), textvariable=textvariable)
+        self.existing_projects_combo.pack()
+        self.existing_projects_combo.bind('<<ComboboxSelected>>', lambda event: self.update_popup_entries())
+
         project_name_label = tk.Label(self.project_popup, text="Project Name:")
         project_name_label.pack()
         self.project_name_entry = tk.Entry(self.project_popup)
@@ -130,9 +139,40 @@ class TimerApp:
 
         self.project_popup.bind("<Return>", lambda event: self.create_project())
 
+    def update_popup_entries(self):
+        try:
+            project_name = self.existing_projects_combo.get()
+            project_id = self.existing_name_id_pairs[project_name]
+            self.fill_entry(self.project_name_entry, project_name)
+            self.fill_entry(self.project_id_entry, project_id)
+        except:
+            print(f"Could not find '{project_name}' in config")
+        
+        
+
+    @staticmethod
+    def fill_entry(entry, value):
+        entry.delete(0, tk.END)
+        entry.insert(0, value)
+
+    def return_existing_name_id_pairs(self):
+        try:
+            with open("config.json", "r") as file:
+                existing_name_id_pairs = json.load(file)
+        except FileNotFoundError:
+            existing_name_id_pairs = {}
+            print("FIle not found")
+        return existing_name_id_pairs
+    
+    def write_config(self, project_name, project_id):
+        self.existing_name_id_pairs[project_name] = project_id
+        with open("config.json", "w") as file:
+            json.dump(self.existing_name_id_pairs, file)
+
     def create_project(self):
         project_name = self.project_name_entry.get()
         project_id = self.project_id_entry.get()
+        self.write_config(project_name, project_id)
         self.create_timer_tile(project_name, project_id)
         self.project_popup.destroy()
 
