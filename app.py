@@ -78,7 +78,9 @@ class Timer:
         confirm_remove = messagebox.askyesno("Confirmation", "Are you sure you want to remove this timer?")
         if confirm_remove:
             self.frame.destroy()
-            self.app.remove_timer(self)
+            for i, timer in enumerate(self.app.timers):
+                if timer == self:
+                    self.app.timers.pop(i)
             self.frame.destroy()
 
     def save_to_json(self, end_time, time_taken):
