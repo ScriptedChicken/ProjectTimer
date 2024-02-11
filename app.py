@@ -18,7 +18,7 @@ class Timer:
         self.project_label = tk.Label(self.frame, text=f'Project Name: {project_name}\nProject ID: {project_id}', font=self.font)
         self.project_label.pack()
 
-        self.time_label = tk.Label(self.frame, text='00:00', font=self.font)
+        self.time_label = tk.Label(self.frame, text='00:00:00', font=self.font)
         self.time_label.pack()
 
         self.button_frame = tk.Frame(self.frame)
@@ -63,8 +63,9 @@ class Timer:
             self.after_id = self.frame.after(1000, self._update)
 
     def _display_time(self):
-        mins, secs = divmod(self.elapsed_time, 60)
-        self.time_label.config(text='%02d:%02d' % (mins, secs))
+        hours, remainder = divmod(self.elapsed_time, 3600)  # 3600 seconds in an hour
+        mins, secs = divmod(remainder, 60)
+        self.time_label.config(text='%02d:%02d:%02d' % (hours, mins, secs))
 
     def pause_updates(self):
         if self.running:
