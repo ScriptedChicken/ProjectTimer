@@ -11,6 +11,7 @@ class Timer:
         self.project_name = project_name
         self.project_id = project_id
         self.font = 'Arial 20'
+        self.elapsed_time = 0
 
         self.frame = tk.Frame(parent, bd=2, relief=tk.GROOVE)
         self.frame.pack(expand=True,fill='x', padx=20)
@@ -49,7 +50,6 @@ class Timer:
 
     def start(self):
         self.app.pause_all_timers_except(self)
-        self.elapsed_time = 0 
         self._display_time()
         self.after_id = self.frame.after(1000, self._update)
         self.running, self.paused = True, False
@@ -58,9 +58,20 @@ class Timer:
         if self.running and not self.paused:
             self.elapsed_time += 1
             self._display_time()
+            self.save_to_backup()
 
         if self.running:  # Keep update process going.
             self.after_id = self.frame.after(1000, self._update)
+
+    def save_to_backup(self):
+        backup_data = {}
+        for timer in self.app.timers:
+            backup_data[timer.project_id] = {
+                "project_name": timer.project_name,
+                "elapsed_time": timer.elapsed_time
+            }
+        with open('timer_backup.json', 'w') as file:
+            json.dump(backup_data, file)
 
     def _display_time(self):
         hours, remainder = divmod(self.elapsed_time, 3600)  # 3600 seconds in an hour
@@ -82,6 +93,7 @@ class Timer:
             for i, timer in enumerate(self.app.timers):
                 if timer == self:
                     self.app.timers.pop(i)
+                    self.save_to_backup()
             self.frame.destroy()
 
     def save_to_json(self, end_time, time_taken):
@@ -112,6 +124,27 @@ class TimerApp:
 
         self.project_popup = None
         self.create_project_button = None
+
+        self.check_and_load_backup_data()
+
+    def check_and_load_backup_data(self):
+        if os.path.exists('timer_backup.json'):
+            with open('timer_backup.json', 'r') as file:
+                backup_data = json.load(file)
+                if backup_data:
+                    confirm_reload = messagebox.askyesno("Previous Timers Detected",
+                                                          "Previous timer data detected. Do you want to reload them?")
+                    if confirm_reload:
+                        for project_id, timer_data in backup_data.items():
+                            self.create_timer_from_backup(project_id, timer_data)
+    
+    def create_timer_from_backup(self, project_id, timer_data):
+        project_name = timer_data["project_name"]
+        timer = Timer(self.master, project_name, project_id, self)
+        timer.elapsed_time = timer_data["elapsed_time"]
+        timer._display_time()  # Update the displayed time
+        timer.start()  # Start the timer
+        self.timers.append(timer)
 
     def open_add_project_popup(self):
         self.project_popup = tk.Toplevel(self.master)
