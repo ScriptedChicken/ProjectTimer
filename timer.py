@@ -92,15 +92,3 @@ class Timer:
                     self.app.timers.pop(i)
                     self.save_to_backup()
             self.frame.destroy()
-
-    def save_to_json(self, end_time, time_taken):
-        data = {
-            "project_name": self.project_name,
-            "project_id": self.project_id,
-            "start_time": self.start_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "time_taken": str(time_taken)
-        }
-        with open('timers.json', 'a') as file:
-            json.dump(data, file)
-            file.write('\n')
