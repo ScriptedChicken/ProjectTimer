@@ -1,8 +1,8 @@
-from tkinter import messagebox, Frame, Label, Button, GROOVE, LEFT, TOP, CENTER
+from tkinter import messagebox, Frame, Label, Button, GROOVE, LEFT, TOP, CENTER, Text, END
 import json
 
 class Timer:
-    def __init__(self, parent, project_name, project_id, app):
+    def __init__(self, parent, project_name, project_id, app, notes=None):
         self.parent = parent
         self.app = app
         self.project_name = project_name
@@ -19,6 +19,11 @@ class Timer:
         self.time_label = Label(self.frame, text='00:00:00', font=self.font)
         self.time_label.pack()
 
+        self.notes_box = Text(self.frame, height=3, width=70)
+        if notes:
+            self.set_notes(notes)
+        self.notes_box.pack()
+
         self.button_frame = Frame(self.frame)
         self.button_frame.pack()
 
@@ -32,6 +37,12 @@ class Timer:
 
         self.running, self.paused = False, False
         self.after_id = None
+
+    def get_notes(self):
+        return self.notes_box.get("1.0", END)
+
+    def set_notes(self, notes):
+        self.notes_box.insert(END, notes)
 
     def start_pause_timer(self):
         if not self.running:
@@ -65,7 +76,8 @@ class Timer:
         for timer in self.app.timers:
             backup_data[timer.project_id] = {
                 "project_name": timer.project_name,
-                "elapsed_time": timer.elapsed_time
+                "elapsed_time": timer.elapsed_time,
+                "notes": timer.get_notes()
             }
         with open('timer_backup.json', 'w') as file:
             json.dump(backup_data, file)

@@ -37,16 +37,17 @@ class App:
     
     def create_timer_from_backup(self, project_id, timer_data):
         project_name = timer_data["project_name"]
-        timer = Timer(self.master, project_name, project_id, self)
+        notes = timer_data["notes"]
+        timer = Timer(self.master, project_name, project_id, self, notes)
         timer.elapsed_time = timer_data["elapsed_time"]
-        timer._display_time()  # Update the displayed time
-        timer.start()  # Start the timer
+        timer._display_time()
+        timer.start()
         self.timers.append(timer)
 
     def open_add_project_popup(self):
         self.project_popup = Toplevel(self.master)
         self.project_popup.title("Add New Project")
-        self.project_popup.geometry("400x160")  # Set the size of the popup window
+        self.project_popup.geometry("400x160")
 
         self.existing_name_id_pairs = self.return_existing_name_id_pairs()
 
@@ -130,7 +131,8 @@ class App:
             data.append({
                 "Project ID": timer.project_id,
                 "Project Name": timer.project_name,
-                "Total Hours": total_time # Convert to hours
+                "Total Hours": total_time,
+                "Notes": timer.get_notes()
             })
 
         df = pd.DataFrame(data)
